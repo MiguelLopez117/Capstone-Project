@@ -27,7 +27,13 @@ char fileName[13] = FILE_BASE_NAME "00.csv";
 int micro1 = A0;
 int micro2 = A1;
 int micro3 = A2;
-int val;
+int val1;
+int val2;
+int val3; 
+
+int threshold = 4000;
+int startTime;
+int lastTime;
 
 int button = A3;
 int buttonState;
@@ -42,12 +48,26 @@ void setup() {
   pixel.clear();
 
   pinMode(button, INPUT);
+  pinMode(micro1, INPUT);
+  pinMode(micro2, INPUT);
+  pinMode(micro3, INPUT);
 }
 
 // loop() runs over and over again, as quickly as it can execute.
 void loop() {
   // The core of your code will likely live here.
-  buttonFunction();
+  soundtest();
+}
+
+void soundtest()
+{
+  microphones();
+  startTime = micros();
+  if(val1 > threshold || val2 > threshold || val3 > threshold)
+  {
+    Serial.printf("mic1 = %i | mic2 = %i | mic3 = %i | Time = %i\n",val1,val2,val3,lastTime);
+    lastTime = (micros() - startTime);
+  }
 }
 
 void buttonFunction()
@@ -56,37 +76,25 @@ void buttonFunction()
   if(buttonState == HIGH)
   {
     pixelGreen();
-    //microphone1();
-    //microphone2();
-    microphone3();
+    microphones();
   }
   else
   {
-    pixelRed();
+    pixelBlack();
   }
 }
 
-void microphone1()
+void microphones()
 {
-  val = analogRead(micro1);
-  Serial.printf("value = %i\n", val);
+  val1 = analogRead(micro1);
+  val2 = analogRead(micro2);
+  val3 = analogRead(micro3);
+  //Serial.printf("Microphone 1 = %i | Microphone 2 = %i | Microphone 3 = %i\n", val1, val2, val3);
 }
 
-void microphone2()
+void pixelBlack()
 {
-  val = analogRead(micro2);
-  Serial.printf("value = %i\n", val);
-}
-
-void microphone3()
-{
-  val = analogRead(micro3);
-  Serial.printf("value = %i\n", val);
-}
-
-void pixelRed()
-{
-  pixel.setPixelColor(0,255,0,0);
+  pixel.setPixelColor(0,0,0,0);
   pixel.show();
 }
 
