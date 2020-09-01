@@ -30,6 +30,9 @@ int micro3 = A2;
 int val1;
 int val2;
 int val3; 
+int T1 = 0;
+int T2 = 0;
+int T3 = 0;
 
 int threshold = 4000;
 int startTime;
@@ -62,11 +65,20 @@ void loop() {
 void soundtest()
 {
   microphones();
-  startTime = micros();
-  if(val1 > threshold || val2 > threshold || val3 > threshold)
+  while(T1 = 0 || T2 = 0 || T3 = 0)
   {
-    Serial.printf("mic1 = %i | mic2 = %i | mic3 = %i | Time = %i\n",val1,val2,val3,lastTime);
-    lastTime = (micros() - startTime);
+    if(T1 = 0 & val1 > threshold)
+    {
+      T1 = millis();
+    }
+    if(T2 = 0 & val2 > threshold)
+    {
+      T2 = millis - T1;
+    }
+    if(T3 = 0 & val3 > threshold)
+    {
+      T3 = millis - T2;
+    }
   }
 }
 
