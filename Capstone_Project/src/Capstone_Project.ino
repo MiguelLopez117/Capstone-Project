@@ -105,10 +105,10 @@ void getMicrophoneValues()
 void getTriangulationOfSound()
 {
   getTimingOfSound();
-  A = ((T2 - T1)/1000000)*343;               
-  B = ((T3 - T1)/1000000)*343;               
-  a = (sq(A) + sq(B)-1)*sq(T);            
-  b = (((sq(A)-1)*A) + ((sq(B)-1)*B))*T;      
+  A = (T2 - T1)*343;               
+  B = (T3 - T1)*343;               
+  a = (sq(A) + sq(B)-1);            
+  b = (((sq(A)-1)*A) + ((sq(B)-1)*B));      
   c = (sq(sq(A)-1)/4) + (sq(sq(B)-1)/4);  
   T = (-b-sqrt(sq(b)-(4*a*c))/(2*a)); 
   x = -((A*T) + ((sq(A)-1)/2));
