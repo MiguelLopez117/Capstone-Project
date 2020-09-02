@@ -20,6 +20,7 @@ void loop();
 void simpleSoundTest();
 void getTimingOfSound();
 void getMicrophoneValues();
+void getTriangulationOfSound();
 #line 12 "c:/Users/User/Documents/IoT/Capstone-Project/Capstone_Project/src/Capstone_Project.ino"
 #define PIXEL_PIN A4
 #define PIXEL_COUNT 1
@@ -36,17 +37,20 @@ SdFile file;
 const uint8_t BASE_NAME_SIZE = sizeof(FILE_BASE_NAME) - 1;
 char fileName[13] = FILE_BASE_NAME "00.csv";
 
-int micro1 = A0;
-int micro2 = A1;
-int micro3 = A2;
-int val1;
-int val2;
-int val3; 
-int T1 = 0;
-int T2 = 0;
-int T3 = 0;
+int micro1 = A0, micro2 = A1, micro3 = A2;  //Microphone analog inputs
+int val1, val2, val3;                       //AnalogRead values
+int T1 = 0, T2 = 0, T3 = 0;                 //Timing of sound for each microphone
+int threshold = 4000;                       //Threshold that picks up loud sounds
 
-int threshold = 3700;
+int A;               //Getting A and B values from micros to seconds and multiplying by speed of sound
+int B;               
+
+int a; 
+int b;      
+int c;  
+int T;     //Quadratic Formula pluging a,b,c values
+int x;
+int y;
 
 // setup() runs once, when the device is first turned on.
 void setup() {
@@ -65,8 +69,8 @@ void setup() {
 void loop() {
   // The core of your code will likely live here.
   //simpleSoundTest();
-  getTimingOfSound();
-  
+  //getTimingOfSound();
+  getTriangulationOfSound();
 }
 
 void simpleSoundTest()
@@ -109,4 +113,20 @@ void getMicrophoneValues()
   val2 = analogRead(micro2);
   val3 = analogRead(micro3);
   //Serial.printf("Microphone 1 = %i | Microphone 2 = %i | Microphone 3 = %i\n", val1, val2, val3);
+}
+
+void getTriangulationOfSound()
+{
+  getTimingOfSound();
+  A = ((T2 - T1)/1000000)*343;               
+  B = ((T3 - T1)/1000000)*343;               
+  a = (sq(A) + sq(B)-1)*sq(T);            
+  b = (((sq(A)-1)*A) + ((sq(B)-1)*B))*T;      
+  c = (sq(sq(A)-1)/4) + (sq(sq(B)-1)/4);  
+  T = (-b-sqrt(sq(b)-(4*a*c))/(2*a)); 
+  x = -((A*T) + ((sq(A)-1)/2));
+  y = -((B*T) + ((sq(B)-1)/2));
+  Serial.printf("A = %i | B = %i\n", A, B);
+  Serial.printf("T = %i\n", T);
+  Serial.printf("X = %i | Y = %i\n", x, y);
 }
