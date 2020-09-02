@@ -29,8 +29,8 @@ int val1, val2, val3;                       //AnalogRead values
 int T1 = 0, T2 = 0, T3 = 0;                 //Timing of sound for each microphone
 int threshold = 4000;                       //Threshold that picks up loud sounds
 
-int A;               //Getting A and B values from micros to seconds and multiplying by speed of sound
-int B;               
+float A;               //Getting A and B values from micros to seconds and multiplying by speed of sound
+float B;               
 
 int a; 
 int b;      
@@ -105,8 +105,8 @@ void getMicrophoneValues()
 void getTriangulationOfSound()
 {
   getTimingOfSound();
-  A = (T2 - T1)*343;               
-  B = (T3 - T1)*343;               
+  A = ((T2 - T1)/1000000)*343;               
+  B = ((T3 - T1)/1000000)*343;               
   a = (sq(A) + sq(B)-1);            
   b = (((sq(A)-1)*A) + ((sq(B)-1)*B));      
   c = (sq(sq(A)-1)/4) + (sq(sq(B)-1)/4);  
