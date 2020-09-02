@@ -24,17 +24,18 @@ SdFile file;
 const uint8_t BASE_NAME_SIZE = sizeof(FILE_BASE_NAME) - 1;
 char fileName[13] = FILE_BASE_NAME "00.csv";
 
-int micro1 = A0;
-int micro2 = A1;
-int micro3 = A2;
-int val1;
-int val2;
-int val3; 
-int T1 = 0;
-int T2 = 0;
-int T3 = 0;
+int micro1 = A0, micro2 = A1, micro3 = A2;  //Microphone analog inputs
+int val1, val2, val3;                       //AnalogRead values
+int T1 = 0, T2 = 0, T3 = 0;                 //Timing of sound for each microphone
+int threshold = 4000;                       //Threshold that picks up loud sounds
 
-int threshold = 3700;
+int A = (T2 - T1)/1000*(343);               //Getting A and B values from micros to seconds and multiplying by speed of sound
+int B = (T3 - T1)/1000*(343);               
+
+int a = (sq(A) + sq(B)-1)*sq(T);            //
+int b = ((sq(A)-1)*A + (sq(B)-1)*B)*T;      
+int c = (sq(sq(A)-1)/4) + (sq(sq(B)-1)/4);  
+int T = (-b-sqrt(sq(b)-(4*a*c))/(2*a));     //Quadratic Formula pluging a,b,c values
 
 // setup() runs once, when the device is first turned on.
 void setup() {
@@ -54,7 +55,6 @@ void loop() {
   // The core of your code will likely live here.
   //simpleSoundTest();
   getTimingOfSound();
-  
 }
 
 void simpleSoundTest()
