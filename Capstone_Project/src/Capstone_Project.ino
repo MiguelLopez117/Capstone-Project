@@ -27,17 +27,17 @@ char fileName[13] = FILE_BASE_NAME "00.csv";
 int micro1 = A0, micro2 = A1, micro3 = A2;  //Microphone analog inputs
 int val1, val2, val3;                       //AnalogRead values
 int T1 = 0, T2 = 0, T3 = 0;                 //Timing of sound for each microphone
-int threshold = 4000;                       //Threshold that picks up loud sounds
+int threshold = 3000;                       //Threshold that picks up loud sounds
 
 float A;               //Getting A and B values from micros to seconds and multiplying by speed of sound
 float B;               
 
-int a; 
-int b;      
-int c;  
-int T;     //Quadratic Formula pluging a,b,c values
-int x;
-int y;
+float a; 
+float b;      
+float c;  
+float T;     //Quadratic Formula pluging a,b,c values
+float x;
+float y;
 
 // setup() runs once, when the device is first turned on.
 void setup() {
@@ -71,6 +71,7 @@ void simpleSoundTest()
 
 void getTimingOfSound()
 {
+  delay(2000);
   T1 = 0;
   T2 = 0;
   T3 = 0;
@@ -105,15 +106,23 @@ void getMicrophoneValues()
 void getTriangulationOfSound()
 {
   getTimingOfSound();
-  A = ((T2 - T1)/1000000)*343;               
-  B = ((T3 - T1)/1000000)*343;               
+  A = ((T2 - T1)/1000000.0)*343;               
+  B = ((T3 - T1)/1000000.0)*343; 
+  //A = -0.196;
+  //B = 0.473;              
   a = (sq(A) + sq(B)-1);            
   b = (((sq(A)-1)*A) + ((sq(B)-1)*B));      
   c = (sq(sq(A)-1)/4) + (sq(sq(B)-1)/4);  
-  T = (-b-sqrt(sq(b)-(4*a*c))/(2*a)); 
+  //A = -0.196;
+  //B = 0.473;
+  //a = -0.737;
+ // b = -0.178;
+  //c = 0.381;
+  T = ((-b-sqrt(sq(b)-(4*a*c)))/(2*a)); 
   x = -((A*T) + ((sq(A)-1)/2));
   y = -((B*T) + ((sq(B)-1)/2));
-  Serial.printf("A = %i | B = %i\n", A, B);
-  Serial.printf("T = %i\n", T);
-  Serial.printf("X = %i | Y = %i\n", x, y);
+  Serial.printf("A = %0.6f | B = %0.6f\n", A, B);
+  Serial.printf("T = %0.2f\n", T);
+  Serial.printf("X = %0.2f | Y = %0.2f\n", x, y);
+  Serial.printf("a = %0.2f | b = %0.2f | c = %0.2f\n",a,b,c);
 }
