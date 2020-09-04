@@ -5,12 +5,13 @@
 #include "Particle.h"
 #line 1 "c:/Users/User/Documents/IoT/Capstone-Project/Capstone_Project/src/Capstone_Project.ino"
 /*
- * Project Capstone_Project
+ * Project: Capstone_Project
  * Description: Triangulating sound to find precise location
  * Author:  Miguel Lopez
  * Date: 8/27/20
  */
 
+#include <JsonParserGeneratorRk.h>
 #include <neopixel.h>
 #include <SPI.h>
 #include <SdFat.h>
@@ -21,11 +22,18 @@ void simpleSoundTest();
 void getTimingOfSound();
 void getMicrophoneValues();
 void getTriangulationOfSound();
-#line 12 "c:/Users/User/Documents/IoT/Capstone-Project/Capstone_Project/src/Capstone_Project.ino"
+void showLocationWithNoepixles();
+void somethingGreat(float X, float Y);
+#line 13 "c:/Users/User/Documents/IoT/Capstone-Project/Capstone_Project/src/Capstone_Project.ino"
 #define PIXEL_PIN A4
-#define PIXEL_COUNT 1
+#define PIXEL_COUNT 31
 #define PIXEL_TYPE WS2812B
-Adafruit_NeoPixel pixel(PIXEL_COUNT, PIXEL_PIN, PIXEL_TYPE);
+Adafruit_NeoPixel pixelX(PIXEL_COUNT, PIXEL_PIN, PIXEL_TYPE);
+
+#define PIXEL_PIN2 A3
+#define PIXEL_COUNT 31
+#define PIXEL_TYPE WS2812B
+Adafruit_NeoPixel pixelY(PIXEL_COUNT, PIXEL_PIN2, PIXEL_TYPE);
 
 const int chipSelect = SS;
 
@@ -40,25 +48,28 @@ char fileName[13] = FILE_BASE_NAME "00.csv";
 int micro1 = A0, micro2 = A1, micro3 = A2;  //Microphone analog inputs
 int val1, val2, val3;                       //AnalogRead values
 int T1 = 0, T2 = 0, T3 = 0;                 //Timing of sound for each microphone
-int threshold = 3000;                       //Threshold that picks up loud sounds
+int threshold = 4000;                       //Threshold that picks up loud sounds
 
-float A;               //Getting A and B values from micros to seconds and multiplying by speed of sound
-float B;               
+float A, B;               //Getting A and B values from micros to seconds and multiplying by speed of sound             
 
-float a; 
-float b;      
-float c;  
-float T;     //Quadratic Formula pluging a,b,c values
-float x;
-float y;
+float a, b, c;        //Values for Quadratic Formula  
+float T;              //Quadratic Formula
+float X, Y;           //Position of Sound
+
+int locationX, locationY;       //Utilizing map-function to show location using neopixels like in a quadrant
+float pointX, pointY;
+
+
 
 // setup() runs once, when the device is first turned on.
 void setup() {
   // Put initialization like pinMode and begin functions here.
   Serial.begin(9600);
 
-  pixel.begin();
-  pixel.clear();
+  pixelX.begin();
+  pixelY.begin();
+  pixelX.clear();
+  pixelY.clear();
 
   pinMode(micro1, INPUT);
   pinMode(micro2, INPUT);
@@ -70,7 +81,8 @@ void loop() {
   // The core of your code will likely live here.
   //simpleSoundTest();
   //getTimingOfSound();
-  getTriangulationOfSound();
+  //getTriangulationOfSound();
+  showLocationWithNoepixles();
 }
 
 void simpleSoundTest()
@@ -132,10 +144,39 @@ void getTriangulationOfSound()
  // b = -0.178;
   //c = 0.381;
   T = ((-b-sqrt(sq(b)-(4*a*c)))/(2*a)); 
-  x = -((A*T) + ((sq(A)-1)/2));
-  y = -((B*T) + ((sq(B)-1)/2));
+  X = -((A*T) + ((sq(A)-1)/2));
+  Y = -((B*T) + ((sq(B)-1)/2));
   Serial.printf("A = %0.6f | B = %0.6f\n", A, B);
   Serial.printf("T = %0.2f\n", T);
-  Serial.printf("X = %0.2f | Y = %0.2f\n", x, y);
+  Serial.printf("X = %0.2f | Y = %0.2f\n", X, Y);
   Serial.printf("a = %0.2f | b = %0.2f | c = %0.2f\n",a,b,c);
+}
+
+void showLocationWithNoepixles()
+{
+  somethingGreat(X, Y);
+  getTriangulationOfSound();
+  pointX = X;
+  locationX = map(pointX,0.0,1.0,0.0,31.0);
+  pixelX.clear();
+  pixelX.setPixelColor(locationX,255,0,0);
+  pixelX.show();
+
+  pointY = Y;
+  locationY = map(pointY,0.0,1.0,0.0,31.0);
+  pixelY.clear();
+  pixelY.setPixelColor(locationY,0,0,255);
+  pixelY.show();
+}
+
+void somethingGreat(float X, float Y)
+{
+  JsonWriterStatic<256> jw;
+  {
+    JsonWriterAutoObject obj(&jw);
+
+    jw.insertKeyValue("Longitud", X);
+    jw.insertKeyValue("Latitude", Y);
+  }
+  Particle.publish("Noise",jw.getBuffer(), PRIVATE);
 }

@@ -1,23 +1,24 @@
 /*
- * Project Capstone_Project
+ * Project: Capstone_Project
  * Description: Triangulating sound to find precise location
  * Author:  Miguel Lopez
  * Date: 8/27/20
  */
 
+#include <JsonParserGeneratorRk.h>
 #include <neopixel.h>
 #include <SPI.h>
 #include <SdFat.h>
 
 #define PIXEL_PIN A4
-#define PIXEL_COUNT 25
+#define PIXEL_COUNT 31
 #define PIXEL_TYPE WS2812B
 Adafruit_NeoPixel pixelX(PIXEL_COUNT, PIXEL_PIN, PIXEL_TYPE);
 
-#define PIXEL_PIN A3
-#define PIXEL_COUNT 25
+#define PIXEL_PIN2 A3
+#define PIXEL_COUNT 31
 #define PIXEL_TYPE WS2812B
-Adafruit_NeoPixel pixelY(PIXEL_COUNT, PIXEL_PIN, PIXEL_TYPE);
+Adafruit_NeoPixel pixelY(PIXEL_COUNT, PIXEL_PIN2, PIXEL_TYPE);
 
 const int chipSelect = SS;
 
@@ -32,7 +33,7 @@ char fileName[13] = FILE_BASE_NAME "00.csv";
 int micro1 = A0, micro2 = A1, micro3 = A2;  //Microphone analog inputs
 int val1, val2, val3;                       //AnalogRead values
 int T1 = 0, T2 = 0, T3 = 0;                 //Timing of sound for each microphone
-int threshold = 3000;                       //Threshold that picks up loud sounds
+int threshold = 4000;                       //Threshold that picks up loud sounds
 
 float A, B;               //Getting A and B values from micros to seconds and multiplying by speed of sound             
 
@@ -41,7 +42,7 @@ float T;              //Quadratic Formula
 float X, Y;           //Position of Sound
 
 int locationX, locationY;       //Utilizing map-function to show location using neopixels like in a quadrant
-int pointX, pointY;
+float pointX, pointY;
 
 
 
@@ -65,7 +66,8 @@ void loop() {
   // The core of your code will likely live here.
   //simpleSoundTest();
   //getTimingOfSound();
-  getTriangulationOfSound();
+  //getTriangulationOfSound();
+  showLocationWithNoepixles();
 }
 
 void simpleSoundTest()
@@ -137,14 +139,29 @@ void getTriangulationOfSound()
 
 void showLocationWithNoepixles()
 {
+  somethingGreat(X, Y);
   getTriangulationOfSound();
   pointX = X;
-  locationX = map(pointX,0,1,0,25);
+  locationX = map(pointX,0.0,1.0,0.0,31.0);
+  pixelX.clear();
   pixelX.setPixelColor(locationX,255,0,0);
   pixelX.show();
 
   pointY = Y;
-  locationY = map(pointY,0,1,25,50);
+  locationY = map(pointY,0.0,1.0,0.0,31.0);
+  pixelY.clear();
   pixelY.setPixelColor(locationY,0,0,255);
   pixelY.show();
+}
+
+void somethingGreat(float X, float Y)
+{
+  JsonWriterStatic<256> jw;
+  {
+    JsonWriterAutoObject obj(&jw);
+
+    jw.insertKeyValue("Longitud", X);
+    jw.insertKeyValue("Latitude", Y);
+  }
+  Particle.publish("Noise",jw.getBuffer(), PRIVATE);
 }
