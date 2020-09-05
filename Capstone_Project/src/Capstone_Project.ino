@@ -11,13 +11,10 @@
 #include <SdFat.h>
 
 #define PIXEL_PIN A4
-#define PIXEL_COUNT 31
-#define PIXEL_TYPE WS2812B
-Adafruit_NeoPixel pixelX(PIXEL_COUNT, PIXEL_PIN, PIXEL_TYPE);
-
 #define PIXEL_PIN2 A3
 #define PIXEL_COUNT 31
 #define PIXEL_TYPE WS2812B
+Adafruit_NeoPixel pixelX(PIXEL_COUNT, PIXEL_PIN, PIXEL_TYPE);
 Adafruit_NeoPixel pixelY(PIXEL_COUNT, PIXEL_PIN2, PIXEL_TYPE);
 
 const int chipSelect = SS;
@@ -35,16 +32,18 @@ int val1, val2, val3;                       //AnalogRead values
 int T1 = 0, T2 = 0, T3 = 0;                 //Timing of sound for each microphone
 int threshold = 4000;                       //Threshold that picks up loud sounds
 
-float A, B;               //Getting A and B values from micros to seconds and multiplying by speed of sound             
+int i;                                      //Variable for for loop
+const int arraySize = 500;                  //Size of the array
+float soundWaveArray[4096][2];              //Two dimensional array capturing timestamp and soundwave
 
-float a, b, c;        //Values for Quadratic Formula  
-float T;              //Quadratic Formula
-float X, Y;           //Position of Sound
+float A, B;                                 //Getting A and B values from micros to seconds and multiplying by speed of sound             
 
-int locationX, locationY;       //Utilizing map-function to show location using neopixels like in a quadrant
+float a, b, c;                              //Values for Quadratic Formula  
+float T;                                    //Quadratic Formula
+float X, Y;                                 //Position of Sound
+
+int locationX, locationY;                   //Utilizing map-function to displah location using neopixels like on a quadrant
 float pointX, pointY;
-
-
 
 // setup() runs once, when the device is first turned on.
 void setup() {
@@ -64,10 +63,7 @@ void setup() {
 // loop() runs over and over again, as quickly as it can execute.
 void loop() {
   // The core of your code will likely live here.
-  //simpleSoundTest();
-  //getTimingOfSound();
-  //getTriangulationOfSound();
-  showLocationWithNoepixles();
+  showLocationWithNeopixels();
 }
 
 void simpleSoundTest()
@@ -137,9 +133,9 @@ void getTriangulationOfSound()
   Serial.printf("a = %0.2f | b = %0.2f | c = %0.2f\n",a,b,c);
 }
 
-void showLocationWithNoepixles()
+void showLocationWithNeopixels()
 {
-  somethingGreat(X, Y);
+  recordLongitudeLatitudeData(X, Y);
   getTriangulationOfSound();
   pointX = X;
   locationX = map(pointX,0.0,1.0,0.0,31.0);
@@ -154,7 +150,7 @@ void showLocationWithNoepixles()
   pixelY.show();
 }
 
-void somethingGreat(float X, float Y)
+void recordLongitudeLatitudeData(float X, float Y)
 {
   JsonWriterStatic<256> jw;
   {
@@ -164,4 +160,50 @@ void somethingGreat(float X, float Y)
     jw.insertKeyValue("Latitude", Y);
   }
   Particle.publish("Noise",jw.getBuffer(), PRIVATE);
+}
+
+void soundWaveCapture()
+{
+  for(i =0 ; i < arraySize ; i++)
+  {
+    getMicrophoneValues();
+    soundWaveArray[i][1] = getMicrophoneValues();
+  }
+}
+
+void sdCard()
+{
+  Serial.printf("Starting Data Logging \n");
+
+  while (sd.exists(fileName)) 
+  {
+    if (fileName[BASE_NAME_SIZE + 1] != '9') 
+    {
+      fileName[BASE_NAME_SIZE + 1]++;
+    } 
+    else if (fileName[BASE_NAME_SIZE] != '9') 
+    {
+      fileName[BASE_NAME_SIZE + 1] = '0';
+      fileName[BASE_NAME_SIZE]++;
+    } 
+    else 
+    {
+      Serial.println("Can't create file name");
+      while(1);
+    }
+  }
+
+  if (!file.open(fileName, O_WRONLY | O_CREAT | O_EXCL)) 
+  {
+    Serial.println("file.open");
+  }
+  Serial.printf("Logging to: %s \n",fileName);
+
+  ////For Loop here for array capturing sound
+
+  file.printf("%i , %i\n",,);
+  file.close();
+  Serial.printf("Done \n");
+  delay(2000);
+  Serial.printf("Ready for next data log \n");
 }
