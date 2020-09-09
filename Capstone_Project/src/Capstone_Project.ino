@@ -43,8 +43,9 @@ float a, b, c;                              //Values for Quadratic Formula
 float T;                                    //Quadratic Formula
 float X, Y;                                 //Position of Sound
 
-int locationX, locationY;                   //Utilizing map-function to displah location using neopixels like on a quadrant
+float locationX, locationY;                   //Utilizing map-function to displah location using neopixels like on a quadrant
 float pointX, pointY;
+float longitude, latitude;
 
 // setup() runs once, when the device is first turned on.
 void setup() {
@@ -125,17 +126,10 @@ void getTriangulationOfSound()
 {
   getTimingOfSound();
   A = ((T2 - T1)/1000000.0)*343;               
-  B = ((T3 - T1)/1000000.0)*343; 
-  //A = -0.196;
-  //B = 0.473;              
+  B = ((T3 - T1)/1000000.0)*343;             
   a = (sq(A) + sq(B)-1);            
   b = (((sq(A)-1)*A) + ((sq(B)-1)*B));      
   c = (sq(sq(A)-1)/4) + (sq(sq(B)-1)/4);  
-  //A = -0.196;
-  //B = 0.473;
-  //a = -0.737;
- // b = -0.178;
-  //c = 0.381;
   T = ((-b-sqrt(sq(b)-(4*a*c)))/(2*a)); 
   X = -((A*T) + ((sq(A)-1)/2));
   Y = -((B*T) + ((sq(B)-1)/2));
@@ -147,32 +141,35 @@ void getTriangulationOfSound()
 
 void showLocationWithNeopixels()
 {
-  recordLongitudeLatitudeData(X, Y);
+  recordLongitudeLatitudeData(longitude, latitude);
   getTriangulationOfSound();
   SDCard();
   pointX = X;
-  locationX = map(pointX,0.0,1.0,0.0,31.0);
+  locationX = map(pointX, 0.0, 1.0, 0.0, 31.0);
+  longitude = map(pointX, 0.0, 1.0, -106.65136, -106.6496);
   pixelX.clear();
   pixelX.setPixelColor(locationX,255,0,0);
   pixelX.show();
 
   pointY = Y;
-  locationY = map(pointY,0.0,1.0,0.0,31.0);
+  locationY = map(pointY, 0.0, 1.0, 0.0, 31.0);
+  latitude = map(pointX, 0.0, 1.0, 35.0866796, 35.088413);
   pixelY.clear();
   pixelY.setPixelColor(locationY,0,0,255);
   pixelY.show();
 }
 
-void recordLongitudeLatitudeData(float X, float Y)
+void recordLongitudeLatitudeData(float longitude, float latitude)
 {
   JsonWriterStatic<256> jw;
   {
     JsonWriterAutoObject obj(&jw);
 
-    jw.insertKeyValue("Longitud", X);
-    jw.insertKeyValue("Latitude", Y);
+    jw.insertKeyValue("Longitude", longitude);
+    jw.insertKeyValue("Latitude", latitude);
   }
   Particle.publish("Noise",jw.getBuffer(), PRIVATE);
+  Serial.printf("Longitude: %0.7f| Latitude: %0.7f\n", longitude, latitude);
 }
 
 void soundWaveCapture()
