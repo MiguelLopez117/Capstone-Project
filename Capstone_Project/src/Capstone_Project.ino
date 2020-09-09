@@ -30,11 +30,12 @@ char fileName[13] = FILE_BASE_NAME "00.csv";
 int micro1 = A0, micro2 = A1, micro3 = A2;  //Microphone analog inputs
 int val1, val2, val3;                       //AnalogRead values
 int T1 = 0, T2 = 0, T3 = 0;                 //Timing of sound for each microphone
-int threshold = 4000;                       //Threshold that picks up loud sounds
+int threshold = 3700;                       //Threshold that picks up loud sounds
 
 int i;                                      //Variable for for loop
-const int arraySize = 500;                  //Size of the array
-float soundWaveArray[4096][2];              //Two dimensional array capturing timestamp and soundwave
+const int arraySize = 1024;                 //Size of the array
+float soundWaveArray[1024][2];              //Two dimensional array capturing timestamp and soundwave
+int lastTime;                               //Timestamp
 
 float A, B;                                 //Getting A and B values from micros to seconds and multiplying by speed of sound             
 
@@ -164,10 +165,18 @@ void recordLongitudeLatitudeData(float X, float Y)
 
 void soundWaveCapture()
 {
-  for(i =0 ; i < arraySize ; i++)
+  getMicrophoneValues();
+  if(val1 > threshold)
   {
-    getMicrophoneValues();
-    soundWaveArray[i][1] = getMicrophoneValues();
+    for(i =0 ; i < arraySize ; i++)
+    {
+      while(micros()-lastTime < 500)
+      {
+        //do nothing
+      }
+      lastTime = micros();
+      soundWaveArray[i][1] = val1;
+    }
   }
 }
 
