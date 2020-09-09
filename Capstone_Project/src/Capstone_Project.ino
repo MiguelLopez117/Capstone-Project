@@ -59,6 +59,17 @@ void setup() {
   pinMode(micro1, INPUT);
   pinMode(micro2, INPUT);
   pinMode(micro3, INPUT);
+
+  if (!sd.begin(chipSelect, SD_SCK_MHZ(50))) 
+  {
+    sd.initErrorHalt();  
+  }
+
+  if (BASE_NAME_SIZE > 6) 
+  {
+    Serial.println("FILE_BASE_NAME too long");
+    while(1);
+  }
 }
 
 // loop() runs over and over again, as quickly as it can execute.
@@ -138,6 +149,7 @@ void showLocationWithNeopixels()
 {
   recordLongitudeLatitudeData(X, Y);
   getTriangulationOfSound();
+  SDCard();
   pointX = X;
   locationX = map(pointX,0.0,1.0,0.0,31.0);
   pixelX.clear();
@@ -165,7 +177,6 @@ void recordLongitudeLatitudeData(float X, float Y)
 
 void soundWaveCapture()
 {
-  getMicrophoneValues();
   if(val1 > threshold)
   {
     for(i =0 ; i < arraySize ; i++)
@@ -175,12 +186,13 @@ void soundWaveCapture()
         //do nothing
       }
       lastTime = micros();
+      getMicrophoneValues();
       soundWaveArray[i][1] = val1;
     }
   }
 }
 
-void sdCard()
+void SDCard()
 {
   Serial.printf("Starting Data Logging \n");
 
@@ -208,9 +220,25 @@ void sdCard()
   }
   Serial.printf("Logging to: %s \n",fileName);
 
-  ////For Loop here for array capturing sound
-
-  file.printf("%i , %i\n",,);
+  //For Loop here for array capturing sound
+  if(val1 > threshold)
+  {
+    for(i = 0 ; i < arraySize ; i++)
+    {
+      while(micros()-lastTime < 500)
+      {
+        //do nothing
+      }
+      lastTime = micros();
+      getMicrophoneValues();
+      soundWaveArray[i][0] = micros()/1000000.0;
+      soundWaveArray[i][1] = val1;
+    }
+  }
+  for(i = 0; i < arraySize; i++)
+  {
+    file.printf("%0.8f , %0.2f\n",soundWaveArray[i][0], soundWaveArray[i][1]);
+  }
   file.close();
   Serial.printf("Done \n");
   delay(2000);
